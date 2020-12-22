@@ -169,6 +169,10 @@ The following components are optional, so you only need to install these prerequ
 - Specifying custom non-parametric lens distortion models for rendering
   - Install the OpenCV Python bindings with OpenEXR support enabled
     - http://opencv.org
+- Submitting rendering jobs to Deadline
+  - Install Deadline (requires a Windows workstation)
+    - http://www.awsthinkbox.com/deadline
+  - Configure Deadline for your system (see below)
 - Using the Hypersim Scene Annotation Tool
   - Install the following C++ libraries: Font-Awesome, IconFontCppHeaders, libigl
     - http://github.com/FortAwesome/Font-Awesome
@@ -242,6 +246,18 @@ cd code/cpp/tools/generate_oriented_bounding_boxes
 make
 ```
 
+### Configuring Deadline for your system
+
+In order to render images using Deadline, you need to run the Deadline Client and the Deadline Web Service on a Windows workstation, and you need to install the Deadline Standalone Python API on that workstation. See the Deadline documentation for more details on installation, configuration, running the Deadline Web Service, and installing the Python API.
+
+According to the official Deadline documentation, the Deadline Standalone Python API requires Python 2.7 or later. However, in our experience, the Deadline Standalone Python API only works correctly without modification on Python 2.7. If you're using Python 2.7, install the Deadline Standalone Python API as usual. If you're using Python 3, our code will import a modified version of the Deadline Standalone Python API that is included in this repository.
+
+You need to configure Deadline to use a custom disk image. See the Deadline documentation for more details on using custom disk images. We recommend using one of the publicly available Deadline Worker Base Images as a starting point. Make sure the Deadline Worker Base Image version exactly matches your version of the Deadline Client. From there, you need to modify your custom disk image to meet the following requirements.
+
+- You need to install the same version of V-Ray Standalone on your local workstation and your custom disk image. Make sure to configure Deadline to use the specific V-Ray Standalone executable that you installed on your custom disk image. See the Deadline documentation for more details.
+- You need to be able to execute `hypersim/code/python/tools/generate_hdf5_from_vrimg.py` on your custom disk image, which in turn needs to be able to execute `hypersim/code/cpp/bin/generate_hdf5_from_exr`. You must therefore build `generate_hdf5_from_exr` directly on your custom disk image, or build it elsewhere and package it using some kind of portable execution environment, such as [CDE](https://cacm.acm.org/blogs/blog-cacm/164620-coping-with-linux-distro-fragmentation-visualized-in-one-giant-diagram/fulltext).
+- You need to rename `hypersim/code/python/tools/_deadline_post_task_script.py.example -> _deadline_post_task_script.py` and modify the paths contained at the top of this file appropriately for your custom disk image. Deadline must be able to execute `_deadline_post_task_script.py` as a post-task script on your Deadline worker EC2 instances, so the paths at the top of `_deadline_post_task_script.py` must be valid paths on your custom disk image.
+
 &nbsp;
 ## Using the Hypersim Toolkit
 
@@ -296,6 +312,20 @@ When preparing the Hypersim Dataset, we chose to manually exclude some scenes an
 
 The camera trajectories we manually excluded from our dataset are listed in `hypersim/evermotion_dataset/analysis/metadata_camera_trajectories.csv`. If the `Scene type` column is listed as `OUTSIDE VIEWING AREA (BAD INITIALIZATION)` or `OUTSIDE VIEWING AREA (BAD TRAJECTORY)`, then we consider that trajectory to be manually excluded from our dataset. If all the camera trajectories for a scene have been manually excluded, then we consider the scene to be manually excluded. We recommend excluding these scenes and camera trajectories in downstream learning applications for consistency with other publications, and to obtain the cleanest possible training data.
 
+If you're using Deadline to render images, you can skip rendering a camera trajectory by manually removing its corresponding rendering job from the Deadline Client after `running dataset_submit_rendering_jobs_deadline.py`.
+
+### Using Deadline as cost-effectively as possible
+
+When using Deadline to render images, you have the freedom to choose what type of AWS compute nodes to use, and how many to launch in parallel. You can save a lot of time and money by making these choices carefully. A useful rule of thumb to keep in mind is: if you're achieving high CPU utilization on all your compute nodes, then you're rendering images as cheaply as possible, regardless of how many compute nodes you've launched. So, when choosing an AWS configuration, our guiding principle is always to maximize CPU utilization while minimizing wall-clock rendering time. In our pipeline, we divide rendering into 3 passes, and we recommend the following AWS configurations for each pass.
+
+The _geometry_ pass renders ground truth layers that do not require accurate shading (e.g., depth and normal images), and is therefore very cheap to compute. For this pass, we recommmend using the smallest compute nodes that can fit each scene into memory, and launching 20 or fewer compute nodes in parallel. This pass will achieve low CPU utilization no matter what (e.g., 20% or so), so there is no advantage to using more powerful compute nodes. Moreover, this pass renders images very quickly, so more than 20 compute nodes will begin to hit AWS network bottlenecks, which will further reduce CPU utilization.
+
+The _pre_ pass pre-computes a lighting solution that is used during high-quality rendering. For this pass, we recommmend using the smallest compute nodes that can fit each scene into memory, and launching 100 or fewer compute nodes in parallel. This pass will generally achieve moderate CPU utilization (e.g., 50% or so), so there is no advantage to using more powerful compute nodes. However, this pass generally takes longer than the geometry pass, and can therefore scale up to 100 compute nodes before encountering AWS network bottlenecks.
+
+The _final_ pass generates high-quality final images. For this pass, we recommend using the most powerful possible compute nodes that still achieve high CPU utilization, and launching 100 or fewer compute nodes in parallel. This pass can scale to very powerful compute nodes while still achieving high CPU utilization (e.g., 90% or so). In our experience, we found that c5.9xlarge nodes achieved very high CPU utilization while also rendering images relatively quickly. Although this pass takes the longest, it also generates the most data per image, and in our experience can scale up to 100 compute nodes before encountering AWS network bottlenecks.
+
+To help you save money when choosing an AWS configuration, we estimated the smallest possible AWS compute node type that could fit each scene into memory, based on the memory usage patterns we observed during rendering. We list these compute node types for each of our camera trajectories in the `min_feasible_instance_type` column of `hypersim/evermotion_dataset/analysis/metadata_rendering_jobs_deadline.csv`.
+
 ### Using our mesh annotations
 
 Our mesh annotations for each scene are checked in at `hypersim/evermotion_dataset/scenes/ai_VVV_NNN/_detail/mesh`, where `VVV` is the volume number and `NNN` is the scene number within the volume. So, you can use our automatic pipeline to generate instance-level semantic segmentation images without needing to manually annotate any scenes.
@@ -346,23 +376,17 @@ python code/python/tools/dataset_modify_vrscenes_for_hypersim_rendering.py --dat
 ```
 # cloud rendering
 
-# output rendering job description files for geometry pass
-python code/python/tools/dataset_submit_rendering_jobs.py --dataset_dir /Volumes/portable_hard_drive/evermotion_dataset --render_pass geometry --scene_names "ai_00*"
+# submit rendering jobs to Deadline for geometry pass (must be run on Windows)
+python code\python\tools\dataset_submit_rendering_jobs_deadline.py --dataset_dir Z:\evermotion_dataset --render_pass geometry --scene_names "ai_00*"
 
-# render geometry pass in the cloud (not provided)
-
-# output rendering job description files for pre pass
-python code/python/tools/dataset_submit_rendering_jobs.py --dataset_dir /Volumes/portable_hard_drive/evermotion_dataset --render_pass pre --scene_names "ai_00*"
-
-# render pre pass in the cloud (not provided)
+# submit rendering jobs to Deadline for pre pass (must be run on Windows)
+python code\python\tools\dataset_submit_rendering_jobs_deadline.py --dataset_dir Z:\evermotion_dataset --render_pass pre --scene_names "ai_00*"
 
 # merge per-image lighting data into per-scene lighting data
 python code/python/tools/dataset_generate_merged_gi_cache_files.py --dataset_dir /Volumes/portable_hard_drive/evermotion_dataset --scene_names "ai_00*"
 
-# output rendering job description files for final pass
-python code/python/tools/dataset_submit_rendering_jobs.py --dataset_dir /Volumes/portable_hard_drive/evermotion_dataset --render_pass final --scene_names "ai_00*"
-
-# render final pass in the cloud (not provided)
+# submit rendering jobs to Deadling for final pass (must be run on Windows)
+python code\python\tools\dataset_submit_rendering_jobs_deadline.py --dataset_dir Z:\evermotion_dataset --render_pass final --scene_names "ai_00*" 
 ```
 
 ```
