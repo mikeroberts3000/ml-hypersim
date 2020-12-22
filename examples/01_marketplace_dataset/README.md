@@ -506,15 +506,17 @@ The `dataset_generate_bounding_boxes.py` tool generates bounding box data in `my
 The `scene_generate_images_bounding_box.py` tool generates images in `my_dataset/scenes/my_scene_N/images/cam_X_final_preview`.
 
 &nbsp;
-## Submitting jobs to a cloud rendering service (optional)
+## Submitting jobs to Deadline (optional)
 
-Rather than rendering images locally, we can submit rendering jobs to a cloud rendering service. We don't provide code for this step, but we do include an example submission script that generates text files containing useful metadata about each rendering job, and could be used for cloud rendering with minor modifications.
+Rather than rendering images locally, we can submit rendering jobs to Deadline, which is a render farm management tool that can use AWS cloud infrastructure to render many images in parallel. For the `pre` rendering pass, submitting jobs to Deadline in this way is equivalent to executing `dataset_render_scene.py`. For the `geometry` and `final` rendering passes, submitting rendering jobs to Deadline in this way is equivalent to executing `dataset_render_scene.py` and `dataset_generate_hdf5_from_vrimg.py`.
+
+_You must execute `dataset_submit_jobs_deadline.py` on a Windows computer that is running the Deadline Client and Deadline Web Service._
 
 ```
-python ../../code/python/tools/dataset_submit_rendering_jobs.py --dataset_dir . --scene_names ai_001_001 --camera_names cam_00 --render_pass final
+python ../../code/python/tools/dataset_submit_rendering_jobs_deadline.py --dataset_dir . --scene_names ai_001_001 --camera_names cam_00 --render_pass final
 ```
 
-The command-line parameters to `dataset_submit_jobs.py` are as follows.
+The command-line parameters to `dataset_submit_jobs_deadline.py` are as follows.
 
 `dataset_dir` is the top-level dataset directory, which in this tutorial example is named `01_marketplace_dataset`.
 
@@ -525,5 +527,3 @@ The command-line parameters to `dataset_submit_jobs.py` are as follows.
 `render_pass` is the name of the rendering pass we want to render. It must be either `geometry`, `pre`, or `final`.
 
 `frames` is an optional parameter that specifies the frame range (in Python range syntax) to be rendered. If not specified, all frames are rendered.
-
-The `dataset_submit_rendering_jobs.py` tool generates text files in `my_dataset/scenes/my_scene_N/jobs`.
