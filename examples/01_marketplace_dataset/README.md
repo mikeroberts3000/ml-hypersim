@@ -20,7 +20,8 @@ _You must substitute your own `replace_new_path` and `dataset_dir_when_rendering
 # unpack scene data
 python ../../code/python/tools/dataset_initialize_scenes.py --dataset_dir . --downloads_dir downloads
 
-# export scene data from native asset file into vrscene file (not provided)
+# export scene data from 3ds Max (must be run on Windows)
+python ..\..\code\python\tools\dataset_export_scenes.py --dataset_dir .
 
 # replace the Windows path in our exported scene with a valid macOS path, so we can execute the rest of the tutorial example on macOS
 python ../../code/python/tools/modify_vrscene_replace_paths.py --in_file scenes/ai_001_001/_asset_export/scene.vrscene --out_file scenes/ai_001_001/_asset_export/scene.vrscene --replace_old_path C:\\Users\\mike_roberts2\\code\\github\\hypersim\\examples\\01_marketplace_dataset --replace_new_path /Users/mike/code/github/hypersim/examples/01_marketplace_dataset
@@ -140,31 +141,21 @@ my_dataset
 
 ### Getting scene data from native asset files
 
-We do not provide code for this step, but this step is responsible for generating the following files:
+Our next step is to export vrscenes out of 3ds Max. We prefer working with vrscenes because they are text files, and can be rendered by V-Ray Standalone on any platform. In contrast, 3ds Max only runs on Windows, and 3ds Max scene files are more onerous to analyze. So, we export vrscenes from 3ds Max as early as possible in our processing pipeline. This step also exports an OBJ file of the scene, which is useful for downstream geometry processing.
+
+_You must execute `dataset_export_scenes.py` on a Windows computer._
 
 ```
-my_dataset
-├── _asset
-└── scenes
-    ├── my_scene_N
-    │   └── _asset_export
-    │       ├── cam_my_camera_X.csv
-    │       ├── ...
-    │       ├── metadata_cameras_asset_export.csv
-    │       ├── scene.obj
-    │       └── scene.vrscene
-    └── ...
+python ..\..\code\python\tools\dataset_export_scenes.py --dataset_dir .
 ```
 
-`my_dataset/_asset` is a directory containing any native asset files that are shared across the dataset.
+The command-line parameters to this tool are as follows.
 
-`my_dataset/my_scene_N/_detail/_asset_export/cam_my_camera_X.csv` contains a camera trajectory for the camera named `cam_my_camera_X`. See `hypersim/code/python/tools/scene_generate_camera_trajectories_asset_export.py` for more details on the expected format of this CSV file.
+`dataset_dir` is the top-level dataset directory, which in this tutorial example is named `01_marketplace_dataset`.
 
-`my_dataset/my_scene_N/_detail/_asset_export/scene.obj` is a standard OBJ file that represents the scene.
+`scene_names` is optional, and specifies that a specific scene (or specific scenes) should be processed. `scene_names` can be a wildcard expression.
 
-`my_dataset/my_scene_N/_detail/_asset_export/scene.vrscene` is a V-Ray Standalone scene description file that represents the scene.
-
-`my_dataset/my_scene_N/_detail/_asset_export/metadata_cameras_asset_export.csv` contains a list of exported camera names. See `hypersim/code/python/tools/scene_generate_camera_trajectories_asset_export.py` for more details on the expected format of this CSV file.
+The `dataset_export_scenes.py` tool saves the raw exported vrscene and OBJ files in `my_dataset/scenes/my_scene_N/_asset_export`. We can visually inspect the OBJ file in any standard viewer.
 
 ### Replacing Windows paths
 
