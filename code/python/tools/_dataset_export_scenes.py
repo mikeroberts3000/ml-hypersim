@@ -3,7 +3,6 @@ import itertools
 import fnmatch
 import os
 from pymxs import runtime as rt
-import shutil
 
 #
 # can't import files from current dir by default, so duplicate path_utils here
