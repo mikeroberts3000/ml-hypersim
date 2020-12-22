@@ -312,7 +312,7 @@ When preparing the Hypersim Dataset, we chose to manually exclude some scenes an
 
 The camera trajectories we manually excluded from our dataset are listed in `hypersim/evermotion_dataset/analysis/metadata_camera_trajectories.csv`. If the `Scene type` column is listed as `OUTSIDE VIEWING AREA (BAD INITIALIZATION)` or `OUTSIDE VIEWING AREA (BAD TRAJECTORY)`, then we consider that trajectory to be manually excluded from our dataset. If all the camera trajectories for a scene have been manually excluded, then we consider the scene to be manually excluded. We recommend excluding these scenes and camera trajectories in downstream learning applications for consistency with other publications, and to obtain the cleanest possible training data.
 
-If you're using Deadline to render images, you can skip rendering a camera trajectory by manually removing its corresponding rendering job from the Deadline Client after `running dataset_submit_rendering_jobs_deadline.py`.
+If you're using Deadline to render images, you can skip rendering a camera trajectory by manually removing its corresponding rendering job from the Deadline Client after running `dataset_submit_rendering_jobs_deadline.py`.
 
 ### Using Deadline as cost-effectively as possible
 
