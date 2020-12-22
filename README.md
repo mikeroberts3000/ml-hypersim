@@ -159,6 +159,8 @@ The following components are optional, so you only need to install these prerequ
 - Exporting data from 3ds Max
   - Install 3ds Max 2018 update 4 (requires a Windows workstation)
     - http://www.autodesk.com
+  - Install V-Ray for 3ds Max (version Next Standalone, update 2.1 for x64 or later)
+    - http://www.chaosgroup.com
 - Using the Hypersim debug visualization tools
   - Install the following Python libraries: mayavi
     - http://docs.enthought.com/mayavi/mayavi
