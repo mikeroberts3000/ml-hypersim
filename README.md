@@ -156,6 +156,9 @@ conda install -c anaconda pillow
 
 The following components are optional, so you only need to install these prerequisites if you intend to use a particular component.
 
+- Exporting data from 3ds Max
+  - Install 3ds Max 2018 update 4 (requires a Windows workstation)
+    - http://www.autodesk.com
 - Using the Hypersim debug visualization tools
   - Install the following Python libraries: mayavi
     - http://docs.enthought.com/mayavi/mayavi
@@ -311,7 +314,8 @@ _You must substitute your own `dataset_dir_when_rendering` when executing these 
 # unpack scene data
 python code/python/tools/dataset_initialize_scenes.py --dataset_dir /Volumes/portable_hard_drive/evermotion_dataset --downloads_dir downloads --dataset_dir_to_copy evermotion_dataset --scene_names "ai_00*"
 
-# export scene data from native asset file into vrscene file (not provided)
+# export scene data from 3ds Max (must be run on Windows)
+python code\python\tools\dataset_export_scenes.py --dataset_dir Z:\evermotion_dataset --scene_names "ai_00*"
 
 # correct bad default export options
 python code/python/tools/dataset_modify_vrscenes_normalize.py --dataset_dir /Volumes/portable_hard_drive/evermotion_dataset --platform_when_rendering windows --dataset_dir_when_rendering Z:\\evermotion_dataset --scene_names "ai_00*"
