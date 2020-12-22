@@ -20,9 +20,9 @@ asset_sceneassets_photometric_dir_legacy = "C:\\Program Files\\3dsMax8\\Photomet
 # required by the Hypersim High-Level Toolkit to submit rendering jobs for cloud rendering
 cloud_server_hostname      = "127.0.0.1"
 cloud_server_port          = 8082
-cloud_server_username      = ""
-cloud_post_task_script     = ""
-cloud_asset_key_prefix_str = ""
+cloud_server_username      = "mike"
+cloud_post_task_script     = "_deadline_post_task_script.py"
+cloud_asset_key_prefix_str = "AWSAssetFile"
 
 # required by the Hypersim High-Level Toolkit to generate animations
 animation_bin   = "ffmpeg"

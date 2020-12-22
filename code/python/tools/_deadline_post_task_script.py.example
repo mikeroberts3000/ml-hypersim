@@ -1,0 +1,206 @@
+from Deadline.Scripting import *
+import ntpath
+import os
+import shutil
+import sys
+from System.IO import *
+
+
+
+#
+# NOTE: If you submit rendering jobs to Deadline using the Hypersim Toolkit, Deadline will execute
+# this file as a post-task script directly on AWS EC2 worker instances by default. The following
+# paths must therefore be valid on your worker instances. Specifically, this file will execute
+# hypersim/code/python/tools/generate_hdf5_from_vrimg.py, which will in turn execute
+# hypersim/code/cpp/bin/generate_hdf5_from_exr. You must therefore configure Deadline to use a custom
+# disk image, and you must build generate_hdf5_from_exr directly on your custom disk image, or build
+# it elsewhere and package it using some kind of portable execution environment, such as CDE.
+#
+# python_bin is the python executable on your AWS EC2 worker instances, which can be "python",
+# "python3", "/usr/bin/python", etc. In our case, we used CDE to package Python,
+# generate_hdf5_from_vrimg.py, generate_hdf5_from_exr, and all of their respective dependencies, so
+# the python_bin we use here is non-standard.
+#
+# generate_hdf5_from_vrimg_py is the path to hypersim/code/python/tools/generate_hdf5_from_vrimg.py
+#
+
+python_bin                  = "/home/ec2-user/code/local/hypersim/code/python/tools/generate_hdf5_from_vrimg/cde-package/cde-exec python"
+generate_hdf5_from_vrimg_py = "/home/mike/code/github/hypersim/code/python/tools/generate_hdf5_from_vrimg.py"
+
+
+
+# NOTE: parameters need to match dataset_submit_rendering_jobs_deadline.py
+hypersim_platform_when_submitting_key    = "ExtraInfo0"
+hypersim_dataset_dir_when_submitting_key = "ExtraInfo1"
+hypersim_scene_name_key                  = "ExtraInfo2"
+hypersim_camera_name_key                 = "ExtraInfo3"
+hypersim_render_pass_key                 = "ExtraInfo4"
+hypersim_output_file_root_key            = "ExtraInfo5"
+hypersim_output_file_ext_key             = "ExtraInfo6"
+
+
+
+def __main__( *args ):
+
+    deadline_plugin = args[0]
+
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] Begin...")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
+
+    job                         = deadline_plugin.GetJob()
+    job_info                    = dict([ (str(k), str(job.GetJobInfoKeyValue(str(k)))) for k in job.GetJobInfoKeys() ])
+    plugin_info                 = dict([ (str(k), str(job.GetJobPluginInfoKeyValue(str(k)))) for k in job.GetJobPluginInfoKeys() ])
+    platform_when_submitting    = job_info[hypersim_platform_when_submitting_key]
+    dataset_dir_when_submitting = job_info[hypersim_dataset_dir_when_submitting_key]
+    scene_name                  = job_info[hypersim_scene_name_key]
+    camera_name                 = job_info[hypersim_camera_name_key]
+    render_pass                 = job_info[hypersim_render_pass_key]
+    output_file_root            = job_info[hypersim_output_file_root_key]
+    output_file_ext             = job_info[hypersim_output_file_ext_key]
+    task                        = deadline_plugin.GetCurrentTask()
+    task_frame_list             = [ int(t) for t in task.TaskFrameList ]
+    jobs_data_dir               = str(deadline_plugin.GetJobsDataDirectory())
+
+    camera_trajectory_dir   = jobs_data_dir
+    metadata_nodes_csv_file = os.path.join(jobs_data_dir, "metadata_nodes.csv")
+    metadata_scene_csv_file = os.path.join(jobs_data_dir, "metadata_scene.csv")
+
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] deadline_plugin             = " + str(deadline_plugin))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] job                         = " + str(job))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] job_info                    = " + str(job_info))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] plugin_info                 = " + str(plugin_info))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] platform_when_submitting    = " + str(platform_when_submitting))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] dataset_dir_when_submitting = " + str(dataset_dir_when_submitting))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] scene_name                  = " + str(scene_name))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] camera_name                 = " + str(camera_name))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] render_pass                 = " + str(render_pass))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] output_file_root            = " + str(output_file_root))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] output_file_ext             = " + str(output_file_ext))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] task                        = " + str(task))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] task_frame_list             = " + str(task_frame_list))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] jobs_data_dir               = " + str(jobs_data_dir))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] camera_trajectory_dir       = " + str(camera_trajectory_dir))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] metadata_nodes_csv_file     = " + str(metadata_nodes_csv_file))
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] metadata_scene_csv_file     = " + str(metadata_scene_csv_file))
+    deadline_plugin.LogInfo("")
+
+    if not platform_when_submitting == "windows":
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] ERROR: DEADLINE JOB MUST BE SUBMITTED FROM A WINDOWS MACHINE. GIVING UP.")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        return
+
+    if not (render_pass == "geometry" or render_pass == "pre" or render_pass == "final"):
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] ERROR: DID NOT RECOGNIZE render_pass. GIVING UP.")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        deadline_plugin.LogInfo("")
+        return
+
+    if render_pass == "geometry" or render_pass == "final":
+
+        # we only support submitting jobs from a Windows machine
+        os_path_module_when_submitting = ntpath
+
+        in_camera_trajectory_dir = camera_trajectory_dir
+        in_metadata_nodes_file   = metadata_nodes_csv_file
+        in_metadata_scene_file   = metadata_scene_csv_file
+        out_hdf5_dir             = os_path_module_when_submitting.join(dataset_dir_when_submitting, "scenes", scene_name, "images", "scene_" + camera_name + "_" + render_pass + "_hdf5")
+        out_preview_dir          = os_path_module_when_submitting.join(dataset_dir_when_submitting, "scenes", scene_name, "images", "scene_" + camera_name + "_" + render_pass + "_preview")
+        tmp_dir                  = deadline_plugin.CreateTempDirectory(task.TaskName)
+
+        # if the Deadline worker executing this script is running Windows
+        if sys.platform == "win32":
+            in_camera_trajectory_dir_remapped = RepositoryUtils.CheckPathMapping(in_camera_trajectory_dir).replace("/", "\\")
+            in_metadata_nodes_file_remapped   = RepositoryUtils.CheckPathMapping(in_metadata_nodes_file).replace("/", "\\")
+            in_metadata_scene_file_remapped   = RepositoryUtils.CheckPathMapping(in_metadata_scene_file).replace("/", "\\")
+            out_hdf5_dir_remapped             = RepositoryUtils.CheckPathMapping(out_hdf5_dir).replace("/", "\\")
+            out_preview_dir_remapped          = RepositoryUtils.CheckPathMapping(out_preview_dir).replace("/", "\\")
+        else:
+            in_camera_trajectory_dir_remapped = RepositoryUtils.CheckPathMapping(in_camera_trajectory_dir).replace("\\", "/")
+            in_metadata_nodes_file_remapped   = RepositoryUtils.CheckPathMapping(in_metadata_nodes_file).replace("\\", "/")
+            in_metadata_scene_file_remapped   = RepositoryUtils.CheckPathMapping(in_metadata_scene_file).replace("\\", "/")
+            out_hdf5_dir_remapped             = RepositoryUtils.CheckPathMapping(out_hdf5_dir).replace("\\", "/")
+            out_preview_dir_remapped          = RepositoryUtils.CheckPathMapping(out_preview_dir).replace("\\", "/")
+
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_camera_trajectory_dir          = " + str(in_camera_trajectory_dir))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_camera_trajectory_dir_remapped = " + str(in_camera_trajectory_dir_remapped))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_metadata_nodes_file            = " + str(in_metadata_nodes_file))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_metadata_nodes_file_remapped   = " + str(in_metadata_nodes_file_remapped))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_metadata_scene_file            = " + str(in_metadata_scene_file))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_metadata_scene_file_remapped   = " + str(in_metadata_scene_file_remapped))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] out_hdf5_dir                      = " + str(out_hdf5_dir))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] out_hdf5_dir_remapped             = " + str(out_hdf5_dir_remapped))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] out_preview_dir                   = " + str(out_preview_dir))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] out_preview_dir_remapped          = " + str(out_preview_dir_remapped))
+        deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] tmp_dir                           = " + str(tmp_dir))
+        deadline_plugin.LogInfo("")
+
+        for t in task_frame_list:
+
+            in_vrimg_file = os_path_module_when_submitting.join(dataset_dir_when_submitting, "scenes", scene_name, "images", "scene_" + camera_name + "_" + render_pass, output_file_root + "." + ("%04d" % t) + "." + output_file_ext)
+
+            # if the Deadline worker executing this script is running Windows
+            if sys.platform == "win32":
+                in_vrimg_file_remapped = RepositoryUtils.CheckPathMapping(in_vrimg_file).replace("/", "\\")
+            else:
+                in_vrimg_file_remapped = RepositoryUtils.CheckPathMapping(in_vrimg_file).replace("\\", "/")
+
+            deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_vrimg_file          = " + str(in_vrimg_file))
+            deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] in_vrimg_file_remapped = " + str(in_vrimg_file_remapped))
+            deadline_plugin.LogInfo("")
+
+            if render_pass == "geometry":
+                cmd = \
+                    python_bin + " " + generate_hdf5_from_vrimg_py + \
+                    " --in_vrimg_files "           + in_vrimg_file_remapped            + \
+                    " --in_camera_trajectory_dir " + in_camera_trajectory_dir_remapped + \
+                    " --in_metadata_nodes_file "   + in_metadata_nodes_file_remapped   + \
+                    " --in_metadata_scene_file "   + in_metadata_scene_file_remapped   + \
+                    " --out_hdf5_dir "             + out_hdf5_dir_remapped             + \
+                    " --out_preview_dir "          + out_preview_dir_remapped          + \
+                    " --tmp_dir "                  + tmp_dir                           + \
+                    " --render_pass geometry"
+                deadline_plugin.LogInfo("")
+                deadline_plugin.LogInfo(cmd)
+                deadline_plugin.LogInfo("")
+                retval = os.system(cmd)
+
+                if not (retval == 0):
+                    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] WARNING: generate_hdf5_from_vrimg.py RETURNED " + str(retval) + ".")
+
+            if render_pass == "final":
+                cmd = \
+                    python_bin + " " + generate_hdf5_from_vrimg_py + \
+                    " --in_vrimg_files "  + in_vrimg_file_remapped   + \
+                    " --out_hdf5_dir "    + out_hdf5_dir_remapped    + \
+                    " --out_preview_dir " + out_preview_dir_remapped + \
+                    " --tmp_dir "         + tmp_dir                  + \
+                    " --render_pass final"
+                deadline_plugin.LogInfo("")
+                deadline_plugin.LogInfo(cmd)
+                deadline_plugin.LogInfo("")
+                retval = os.system(cmd)
+
+                if not (retval == 0):
+                    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] WARNING: generate_hdf5_from_vrimg.py RETURNED " + str(retval) + ".")
+
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("[HYPERSIM: _DEADLINE_POST_TASK_SCRIPT] Finished.")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
+    deadline_plugin.LogInfo("")
