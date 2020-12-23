@@ -324,7 +324,7 @@ The _pre_ pass pre-computes a lighting solution that is used during high-quality
 
 The _final_ pass generates high-quality final images. For this pass, we recommend using the most powerful possible compute nodes that still achieve high CPU utilization, and launching 100 or fewer compute nodes in parallel. This pass can scale to very powerful compute nodes while still achieving high CPU utilization (e.g., 90% or so). In our experience, we found that c5.9xlarge nodes achieved very high CPU utilization while also rendering images relatively quickly. Although this pass takes the longest, it also generates the most data per image, and in our experience can scale up to 100 compute nodes before encountering AWS network bottlenecks.
 
-To help you save money when choosing an AWS configuration, we estimated the smallest possible AWS compute node type that could fit each scene into memory, based on the memory usage patterns we observed during rendering. We list these compute node types for each of our camera trajectories in the `min_feasible_instance_type` column of `hypersim/evermotion_dataset/analysis/metadata_rendering_jobs_deadline.csv`.
+To help you save money when choosing an AWS configuration, we estimated the smallest possible AWS compute node type that could fit each scene into memory, based on the memory usage patterns we observed during rendering. We list these compute node types for each of our camera trajectories in the `min_feasible_instance_type` column of `hypersim/evermotion_dataset/analysis/metadata_rendering_jobs.csv`.
 
 ### Using our mesh annotations
 
