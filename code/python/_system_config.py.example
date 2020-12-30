@@ -33,3 +33,7 @@ max_maxbatch_bin                = '"C:\\Program Files\\Autodesk\\3ds Max 2018\\3
 max_sceneassets_photometric_dir = "C:\\Program Files\\Autodesk\\3ds Max 2018\\sceneassets\\photometric"
 max_plugcfg_dir                 = "C:\\Users\\mike\\AppData\\Local\\Autodesk\\3dsMax\\2018 - 64bit\\ENU\\en-US\\plugcfg"
 max_objexp_ini_file             = "gw_objexp.ini"
+
+# required by hypersim/code/python/tools/dataset_upload_scenes_s3.py to upload scenes to S3
+compress_bin = "7z"
+aws_bin      = "aws"
