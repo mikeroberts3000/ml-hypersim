@@ -24,10 +24,10 @@ python ../../code/python/tools/dataset_initialize_scenes.py --dataset_dir . --do
 python ..\..\code\python\tools\dataset_export_scenes.py --dataset_dir .
 
 # replace the Windows path in our exported scene with a valid macOS path, so we can execute the rest of the tutorial example on macOS
-python ../../code/python/tools/modify_vrscene_replace_paths.py --in_file scenes/ai_001_001/_asset_export/scene.vrscene --out_file scenes/ai_001_001/_asset_export/scene.vrscene --replace_old_path C:\\Users\\mike_roberts2\\code\\github\\hypersim\\examples\\01_marketplace_dataset --replace_new_path /Users/mike/code/github/hypersim/examples/01_marketplace_dataset
+python ../../code/python/tools/modify_vrscene_replace_paths.py --in_file scenes/ai_001_001/_asset_export/scene.vrscene --out_file scenes/ai_001_001/_asset_export/scene.vrscene --replace_old_path C:\\Users\\mike_roberts2\\code\\github\\ml-hypersim\\examples\\01_marketplace_dataset --replace_new_path /Users/mike/code/github/ml-hypersim/examples/01_marketplace_dataset
 
 # correct bad default export options
-python ../../code/python/tools/dataset_modify_vrscenes_normalize.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/hypersim/examples/01_marketplace_dataset
+python ../../code/python/tools/dataset_modify_vrscenes_normalize.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/ml-hypersim/examples/01_marketplace_dataset
 
 # render intermediate image
 python ../../code/python/tools/dataset_render_scene.py --dataset_dir . --scene_name ai_001_001 --render_pass none --save_image
@@ -61,7 +61,7 @@ python ../../code/python/tools/visualize_camera_trajectory.py --mesh_dir scenes/
 
 ```
 # modify vrscene to render camera trajectories with appropriate ground truth layers
-python ../../code/python/tools/dataset_modify_vrscenes_for_hypersim_rendering.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/hypersim/examples/01_marketplace_dataset
+python ../../code/python/tools/dataset_modify_vrscenes_for_hypersim_rendering.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/ml-hypersim/examples/01_marketplace_dataset
 ```
 
 ```
@@ -164,7 +164,7 @@ Exported vrscene files typically contain absolute Windows paths. These paths wil
 _You must substitute your own `replace_old_path` and `replace_new_path` when executing this tool and it must be an absolute path._
 
 ```
-python ../../code/python/tools/modify_vrscene_replace_paths.py --in_file scenes/ai_001_001/_asset_export/scene.vrscene --out_file scenes/ai_001_001/_asset_export/scene.vrscene --replace_old_path C:\\Users\\mike_roberts2\\code\\github\\hypersim\\examples\\01_marketplace_dataset --replace_new_path /Users/mike/code/github/hypersim/examples/01_marketplace_dataset
+python ../../code/python/tools/modify_vrscene_replace_paths.py --in_file scenes/ai_001_001/_asset_export/scene.vrscene --out_file scenes/ai_001_001/_asset_export/scene.vrscene --replace_old_path C:\\Users\\mike_roberts2\\code\\github\\ml-hypersim\\examples\\01_marketplace_dataset --replace_new_path /Users/mike/code/github/ml-hypersim/examples/01_marketplace_dataset
 ```
 
 The command-line parameters to this tool are as follows.
@@ -186,7 +186,7 @@ The command-line tool below will call the appropriate normalization script for e
 _You must substitute your own `dataset_dir_when_rendering` when executing this tool and it must be an absolute path._
 
 ```
-python ../../code/python/tools/dataset_modify_vrscenes_normalize.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/hypersim/examples/01_marketplace_dataset
+python ../../code/python/tools/dataset_modify_vrscenes_normalize.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/ml-hypersim/examples/01_marketplace_dataset
 ```
 
 The command-line parameters to this tool are as follows.
@@ -203,9 +203,9 @@ After completing this step, our directory structure will look like this.
 
 ```
 my_dataset
-├── _asset
 ├── _dataset_config.py
 ├── _vray_user_params.py
+├── _asset
 └── scenes
     ├── my_scene_N
     │   ├── _asset
@@ -317,7 +317,7 @@ Our next step is to add our generated camera trajectory to the vrscene, and to p
 _You must substitute your own `dataset_dir_when_rendering` when executing this tool and it must be an absolute path._
 
 ```
-python ../../code/python/tools/dataset_modify_vrscenes_for_hypersim_rendering.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/hypersim/examples/01_marketplace_dataset
+python ../../code/python/tools/dataset_modify_vrscenes_for_hypersim_rendering.py --dataset_dir . --platform_when_rendering mac --dataset_dir_when_rendering /Users/mike/code/github/ml-hypersim/examples/01_marketplace_dataset
 ```
 
 The command-line parameters to this tool are as follows.
@@ -334,9 +334,9 @@ After completing this step, our directory structure will look like this.
 
 ```
 my_dataset
-├── _asset
 ├── _dataset_config.py
 ├── _vray_user_params.py
+├── _asset
 └── scenes
     ├── my_scene_N
     │   ├── _asset
@@ -344,30 +344,30 @@ my_dataset
     │   ├── _detail
     │   ├── images
     │   │   ├── scene
-    │   │   ├── scene_cam_X_geometry
-    │   │   ├── scene_cam_X_geometry_preview
-    │   │   ├── scene_cam_X_geometry_hdf5
-    │   │   ├── scene_cam_X_pre
     │   │   ├── scene_cam_X_final
-    │   │   ├── scene_cam_X_final_preview
     │   │   ├── scene_cam_X_final_hdf5
+    │   │   ├── scene_cam_X_final_preview
+    │   │   ├── scene_cam_X_geometry
+    │   │   ├── scene_cam_X_geometry_hdf5
+    │   │   ├── scene_cam_X_geometry_preview
+    │   │   ├── scene_cam_X_pre
     │   │   └── ...
     │   └── vrscenes
     │       ├── scene.vrscene
+    │       ├── scene_cam_X_final.vrscene
     │       ├── scene_cam_X_geometry.vrscene
     │       ├── scene_cam_X_pre.vrscene
-    │       ├── scene_cam_X_final.vrscene
     │       └── ...
     └── ...
 ```
 
 The directories in `my_dataset/scenes/my_scene_N/images` are empty, and are intended to store the rendering output of a particular camera trajectory and rendering pass. The preview directories contain JPG and PNG files that are useful for debugging, and the HDF5 directories contain 16-bit HDR images that are useful for downstream analysis.
 
+`my_dataset/scenes/my_scene_N/vrscenes/scene_cam_X_final.vrscene` is a vrscene file containing a particular camera trajectory, and is set up to render final high-quality images.
+
 `my_dataset/scenes/my_scene_N/vrscenes/scene_cam_X_geometry.vrscene` is a vrscene file containing a particular camera trajectory, and is set up to render geometry metadata images (e.g., per-pixel depth, per-pixel normals, etc).
 
 `my_dataset/scenes/my_scene_N/vrscenes/scene_cam_X_pre.vrscene` is a vrscene file containing a particular camera trajectory, and is set up to precompute a lighting solution used for final rendering.
-
-`my_dataset/scenes/my_scene_N/vrscenes/scene_cam_X_final.vrscene` is a vrscene file containing a particular camera trajectory, and is set up to render final high-quality images.
 
 &nbsp;
 ## Rendering the scene
@@ -429,7 +429,7 @@ The `dataset_render_scene.py` tool generates images in `my_dataset/scenes/my_sce
 &nbsp;
 ## Post-processing the rendering output (optional)
 
-After the rendering output has been generated, we can perform several useful post-processing operations. First, we can tonemap the rendered HDR color data into LDR. Second, if we have labeled our scene using the Hypersim Scene Annotation Tool (located at `hypersim/code/cpp/bin/scene_annotation_tool`), we can generate semantic segmentation images. The scene in this tutorial example has already been labeled, and the segmentation data has been checked in, so we can generate segmentation images without needing to label the scene manually. Third, we can generate animations of our rendered output.
+After the rendering output has been generated, we can perform several useful post-processing operations. First, we can tonemap the rendered HDR color data into LDR. Second, if we have labeled our scene using the Hypersim Scene Annotation Tool (located at `ml-hypersim/code/cpp/bin/scene_annotation_tool`), we can generate semantic segmentation images. The scene in this tutorial example has already been labeled, and the segmentation data has been checked in, so we can generate segmentation images without needing to label the scene manually. Third, we can generate animations of our rendered output.
 
 ```
 # generate tone-mapped images for visualization
@@ -463,7 +463,7 @@ The `dataset_generate_animations.py` tool generates animations in `my_dataset/an
 &nbsp;
 ## Generating bounding boxes around objects (optional)
 
-If we have labeled our scene using the Hypersim Scene Annotation Tool (located at `hypersim/code/cpp/bin/scene_annotation_tool`), then we can generate bounding boxes around objects. The scene in this tutorial example has already been labeled, and the segmentation data has been checked in, so we can generate bounding boxes without needing to label the scene manually.
+If we have labeled our scene using the Hypersim Scene Annotation Tool (located at `ml-hypersim/code/cpp/bin/scene_annotation_tool`), then we can generate bounding boxes around objects. The scene in this tutorial example has already been labeled, and the segmentation data has been checked in, so we can generate bounding boxes without needing to label the scene manually.
 
 _You must execute `dataset_generate_bounding_boxes.py` on a macOS or Linux computer._
 
