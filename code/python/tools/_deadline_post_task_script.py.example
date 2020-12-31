@@ -11,8 +11,8 @@ from System.IO import *
 # NOTE: If you submit rendering jobs to Deadline using the Hypersim Toolkit, Deadline will execute
 # this file as a post-task script directly on AWS EC2 worker instances by default. The following
 # paths must therefore be valid on your worker instances. Specifically, this file will execute
-# hypersim/code/python/tools/generate_hdf5_from_vrimg.py, which will in turn execute
-# hypersim/code/cpp/bin/generate_hdf5_from_exr. You must therefore configure Deadline to use a custom
+# ml-hypersim/code/python/tools/generate_hdf5_from_vrimg.py, which will in turn execute
+# ml-hypersim/code/cpp/bin/generate_hdf5_from_exr. You must therefore configure Deadline to use a custom
 # disk image, and you must build generate_hdf5_from_exr directly on your custom disk image, or build
 # it elsewhere and package it using some kind of portable execution environment, such as CDE.
 #
@@ -21,11 +21,11 @@ from System.IO import *
 # generate_hdf5_from_vrimg.py, generate_hdf5_from_exr, and all of their respective dependencies, so
 # the python_bin we use here is non-standard.
 #
-# generate_hdf5_from_vrimg_py is the path to hypersim/code/python/tools/generate_hdf5_from_vrimg.py
+# generate_hdf5_from_vrimg_py is the path to ml-hypersim/code/python/tools/generate_hdf5_from_vrimg.py
 #
 
-python_bin                  = "/home/ec2-user/code/local/hypersim/code/python/tools/generate_hdf5_from_vrimg/cde-package/cde-exec python"
-generate_hdf5_from_vrimg_py = "/home/mike/code/github/hypersim/code/python/tools/generate_hdf5_from_vrimg.py"
+python_bin                  = "/home/ec2-user/code/local/ml-hypersim/code/python/tools/generate_hdf5_from_vrimg/cde-package/cde-exec python"
+generate_hdf5_from_vrimg_py = "/home/mike/code/github/ml-hypersim/code/python/tools/generate_hdf5_from_vrimg.py"
 
 
 
