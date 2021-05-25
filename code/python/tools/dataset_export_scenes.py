@@ -90,7 +90,13 @@ with open(obj_settings_file, "w") as f:
 
 
 
-# copy global asset dependencies to dataset dir
+# Some exported vrscenes refer to assets in the 3ds Max dir, and therefore these scenes
+# are not portable, i.e., they will only render correctly on a machine with 3ds Max
+# installed. To ensure that all of our exported scenes are portable, we copy all 3ds Max
+# assets to the dataset_dir. After this copy step is complete, we still need to replace
+# the paths to the 3ds Max dir in the exported vrscene file. We perform this path
+# replacement during scene normalization.
+current_source_file_path = path_utils.get_current_source_file_path(frame=inspect.currentframe())
 in_max_sceneassets_photometric_dir  = _system_config.max_sceneassets_photometric_dir
 out_max_sceneassets_photometric_dir = os.path.join(args.dataset_dir, "_asset", "sceneassets", "photometric")
 distutils.dir_util.copy_tree(in_max_sceneassets_photometric_dir, out_max_sceneassets_photometric_dir) # can't use shutil.copytree because I want to overwrite files if they exist
