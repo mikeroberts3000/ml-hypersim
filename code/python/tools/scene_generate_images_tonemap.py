@@ -88,7 +88,7 @@ for in_filename in in_filenames:
         brightness       = 0.3*rgb_color[:,:,0] + 0.59*rgb_color[:,:,1] + 0.11*rgb_color[:,:,2] # "CCIR601 YIQ" method for computing brightness
         brightness_valid = brightness[valid_mask]
 
-        eps                               = 0.0001 # if the kth percentile brightness value in the unmodified image is less than this, set the scale to 0.0 to avoid divide-by-zero
+        eps                               = 0.0001 # if the nth percentile brightness value in the unmodified image is less than this, set the scale to 0.0 to avoid divide-by-zero
         brightness_nth_percentile_current = np.percentile(brightness_valid, percentile)
 
         if brightness_nth_percentile_current < eps:
